@@ -2,7 +2,7 @@
     "name": "league/tactician-doctrine",
     "description": "Plugins for Tactician commands using Doctrine, like wrapping every command in a transaction",
     "keywords": ["tactician", "doctrine", "command bus", "transactions"],
-    "homepage": "https://github.com/thephpleague/tactician-doctrine-orm",
+    "homepage": "https://github.com/thephpleague/tactician-doctrine",
     "license": "MIT",
     "authors": [
         {
