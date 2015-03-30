@@ -27,12 +27,12 @@ class TransactionMiddleware implements Middleware
     /**
      * Executes the given command and optionally returns a value
      *
-     * @param Command $command
+     * @param object $command
      * @param callable $next
      * @return mixed
      * @throws Exception
      */
-    public function execute(Command $command, callable $next)
+    public function execute($command, callable $next)
     {
         $this->entityManager->beginTransaction();
 

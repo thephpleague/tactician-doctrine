@@ -2,11 +2,11 @@
 namespace League\Tactician\Doctrine\ORM\Tests;
 
 use Doctrine\ORM\EntityManagerInterface;
-use League\Tactician\Command;
 use League\Tactician\Doctrine\ORM\TransactionMiddleware;
 use Exception;
 use Mockery;
 use Mockery\MockInterface;
+use stdClass;
 
 class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
 {
@@ -40,7 +40,7 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
             $executed++;
         };
 
-        $this->middleware->execute(Mockery::mock(Command::class), $next);
+        $this->middleware->execute(new stdClass(), $next);
 
         $this->assertEquals(1, $executed);
     }
@@ -61,6 +61,6 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
             throw new Exception('CommandFails');
         };
 
-        $this->middleware->execute(Mockery::mock(Command::class), $next);
+        $this->middleware->execute(new stdClass(), $next);
     }
 }
