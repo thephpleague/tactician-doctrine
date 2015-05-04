@@ -11,7 +11,7 @@
     ],
     "require": {
         "php" : ">=5.5",
-        "league/tactician": "^0.4",
+        "league/tactician": "^0.5",
         "doctrine/orm": "~2.4"
     },
     "require-dev": {
