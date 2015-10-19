@@ -33,7 +33,7 @@ If a command fires off more commands, be aware that those commands will run in t
 If an exception is raised while handling the command, the transaction is rolled back, the EntityManager closed, and the exception rethrown.
 
 ## Symfony2 integration
-When using the [tacticial-bundle] (https://github.com/thephpleague/tactician-bundle), add the doctrine middleware to your config:
+When using the [tactician-bundle] (https://github.com/thephpleague/tactician-bundle), don't forget to add the Doctrine middleware to your Symfony config:
 
 ```
 tactician:
