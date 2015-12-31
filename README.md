@@ -50,6 +50,10 @@ tactician:
 ``` bash
 $ ./vendor/bin/phpunit
 ```
+
+## Security
+Disclosure information can be found on [the main Tactician repo](https://github.com/thephpleague/tactician#security).
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
