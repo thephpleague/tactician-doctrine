@@ -3,6 +3,7 @@ namespace League\Tactician\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
 use League\Tactician\Command;
+use Error;
 use Exception;
 use League\Tactician\Middleware;
 
@@ -42,6 +43,10 @@ class TransactionMiddleware implements Middleware
             $this->entityManager->flush();
             $this->entityManager->commit();
         } catch (Exception $e) {
+            $this->entityManager->close();
+            $this->entityManager->rollback();
+            throw $e;
+        } catch (Error $e) {
             $this->entityManager->close();
             $this->entityManager->rollback();
             throw $e;
