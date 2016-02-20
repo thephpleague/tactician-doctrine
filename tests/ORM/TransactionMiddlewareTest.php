@@ -3,6 +3,7 @@ namespace League\Tactician\Doctrine\ORM\Tests;
 
 use Doctrine\ORM\EntityManagerInterface;
 use League\Tactician\Doctrine\ORM\TransactionMiddleware;
+use Error
 use Exception;
 use Mockery;
 use Mockery\MockInterface;
@@ -49,7 +50,7 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
      * @expectedException Exception
      * @expectedExceptionMessage CommandFails
      */
-    public function testCommandFailsAndTransactionIsRolledBack()
+    public function testCommandFailsOnExceptionAndTransactionIsRolledBack()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
         $this->entityManager->shouldReceive('close')->once();
@@ -59,6 +60,27 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         $next = function () {
             throw new Exception('CommandFails');
+        };
+
+        $this->middleware->execute(new stdClass(), $next);
+    }
+
+    /**
+     * @requires PHP 7
+     *
+     * @expectedException Error
+     * @expectedExceptionMessage CommandFails
+     */
+    public function testCommandFailsOnErrorAndTransactionIsRolledBack()
+    {
+        $this->entityManager->shouldReceive('beginTransaction')->once();
+        $this->entityManager->shouldReceive('close')->once();
+        $this->entityManager->shouldReceive('rollback')->once();
+        $this->entityManager->shouldReceive('commit')->never();
+        $this->entityManager->shouldReceive('flush')->never();
+
+        $next = function () {
+            throw new Error('CommandFails');
         };
 
         $this->middleware->execute(new stdClass(), $next);
