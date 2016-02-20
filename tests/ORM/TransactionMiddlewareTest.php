@@ -3,7 +3,7 @@ namespace League\Tactician\Doctrine\ORM\Tests;
 
 use Doctrine\ORM\EntityManagerInterface;
 use League\Tactician\Doctrine\ORM\TransactionMiddleware;
-use Error
+use Error;
 use Exception;
 use Mockery;
 use Mockery\MockInterface;
