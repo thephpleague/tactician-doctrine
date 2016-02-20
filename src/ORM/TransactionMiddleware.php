@@ -2,9 +2,8 @@
 namespace League\Tactician\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
-use League\Tactician\Command;
-use Exception;
 use League\Tactician\Middleware;
+use Exception;
 use Throwable;
 
 /**
