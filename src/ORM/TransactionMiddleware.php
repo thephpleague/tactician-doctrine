@@ -31,6 +31,7 @@ class TransactionMiddleware implements Middleware
      * @param callable $next
      * @return mixed
      * @throws Throwable
+     * @throws Exception
      */
     public function execute($command, callable $next)
     {
