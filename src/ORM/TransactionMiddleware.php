@@ -3,9 +3,9 @@ namespace League\Tactician\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
 use League\Tactician\Command;
-use Error;
 use Exception;
 use League\Tactician\Middleware;
+use Throwable;
 
 /**
  * Wraps command execution inside a Doctrine ORM transaction
@@ -31,7 +31,7 @@ class TransactionMiddleware implements Middleware
      * @param object $command
      * @param callable $next
      * @return mixed
-     * @throws Exception
+     * @throws Throwable
      */
     public function execute($command, callable $next)
     {
@@ -46,7 +46,7 @@ class TransactionMiddleware implements Middleware
             $this->entityManager->close();
             $this->entityManager->rollback();
             throw $e;
-        } catch (Error $e) {
+        } catch (Throwable $e) {
             $this->entityManager->close();
             $this->entityManager->rollback();
             throw $e;
