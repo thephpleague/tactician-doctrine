@@ -43,15 +43,28 @@ class TransactionMiddleware implements Middleware
             $this->entityManager->flush();
             $this->entityManager->commit();
         } catch (Exception $e) {
-            $this->entityManager->close();
-            $this->entityManager->rollback();
+            $this->rollbackTransaction();
+
             throw $e;
         } catch (Throwable $e) {
-            $this->entityManager->close();
-            $this->entityManager->rollback();
+            $this->rollbackTransaction();
+
             throw $e;
         }
 
         return $returnValue;
+    }
+
+    /**
+     * Rollback the current transaction and close the entity manager when possible.
+     */
+    protected function rollbackTransaction()
+    {
+        $this->entityManager->rollback();
+
+        $connection = $this->entityManager->getConnection();
+        if (!$connection->isTransactionActive() || $connection->isRollbackOnly()) {
+            $this->entityManager->close();
+        }
     }
 }

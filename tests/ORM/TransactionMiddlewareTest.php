@@ -32,9 +32,9 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
         $this->entityManager->shouldReceive('commit')->once();
-        $this->entityManager->shouldReceive('close')->never();
         $this->entityManager->shouldReceive('flush')->once();
         $this->entityManager->shouldReceive('rollback')->never();
+        $this->entityManager->shouldReceive('close')->never();
 
         $executed = 0;
         $next = function () use (&$executed) {
@@ -53,10 +53,54 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
     public function testCommandFailsOnExceptionAndTransactionIsRolledBack()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
-        $this->entityManager->shouldReceive('close')->once();
-        $this->entityManager->shouldReceive('rollback')->once();
         $this->entityManager->shouldReceive('commit')->never();
         $this->entityManager->shouldReceive('flush')->never();
+        $this->entityManager->shouldReceive('rollback')->once();
+        $this->entityManager->shouldReceive('getConnection->isTransactionActive')->once()->andReturn(false);
+        $this->entityManager->shouldReceive('getConnection->isRollbackOnly')->never();
+        $this->entityManager->shouldReceive('close')->once();
+
+        $next = function () {
+            throw new Exception('CommandFails');
+        };
+
+        $this->middleware->execute(new stdClass(), $next);
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage CommandFails
+     */
+    public function testCommandFailsWhileInANestedTransactionButWithoutSavepoints()
+    {
+        $this->entityManager->shouldReceive('beginTransaction')->once();
+        $this->entityManager->shouldReceive('commit')->never();
+        $this->entityManager->shouldReceive('flush')->never();
+        $this->entityManager->shouldReceive('rollback')->once();
+        $this->entityManager->shouldReceive('getConnection->isTransactionActive')->once()->andReturn(true);
+        $this->entityManager->shouldReceive('getConnection->isRollbackOnly')->once()->andReturn(true);
+        $this->entityManager->shouldReceive('close')->once();
+
+        $next = function () {
+            throw new Exception('CommandFails');
+        };
+
+        $this->middleware->execute(new stdClass(), $next);
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage CommandFails
+     */
+    public function testCommandFailsWhileInANestedTransactionWithSavepointOn()
+    {
+        $this->entityManager->shouldReceive('beginTransaction')->once();
+        $this->entityManager->shouldReceive('commit')->never();
+        $this->entityManager->shouldReceive('flush')->never();
+        $this->entityManager->shouldReceive('rollback')->once();
+        $this->entityManager->shouldReceive('getConnection->isTransactionActive')->once()->andReturn(true);
+        $this->entityManager->shouldReceive('getConnection->isRollbackOnly')->once()->andReturn(false);
+        $this->entityManager->shouldReceive('close')->never();
 
         $next = function () {
             throw new Exception('CommandFails');
@@ -74,10 +118,12 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
     public function testCommandFailsOnErrorAndTransactionIsRolledBack()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
-        $this->entityManager->shouldReceive('close')->once();
-        $this->entityManager->shouldReceive('rollback')->once();
         $this->entityManager->shouldReceive('commit')->never();
         $this->entityManager->shouldReceive('flush')->never();
+        $this->entityManager->shouldReceive('rollback')->once();
+        $this->entityManager->shouldReceive('getConnection->isTransactionActive')->once()->andReturn(false);
+        $this->entityManager->shouldReceive('getConnection->isRollbackOnly')->never();
+        $this->entityManager->shouldReceive('close')->once();
 
         $next = function () {
             throw new Error('CommandFails');
