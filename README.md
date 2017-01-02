@@ -6,7 +6,7 @@
 [![Quality Score](https://img.shields.io/scrutinizer/g/thephpleague/tactician-doctrine.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/tactician-doctrine)
 [![Total Downloads](https://img.shields.io/packagist/dt/league/tactician-doctrine.svg?style=flat-square)](https://packagist.org/packages/league/tactician-doctrine)
 
-This package adds plugins for using Tactician with Doctrine components, typically the ORM. The main feature is the ability to wrap each command in a separate database transaction.
+This package adds plugins for using Tactician with Doctrine components, typically the ORM (or just DBAL if you don't need ORM overhead). The main feature is the ability to wrap each command in a separate database transaction.
 
 ## Setup
 
