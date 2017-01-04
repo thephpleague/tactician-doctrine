@@ -28,9 +28,6 @@ install:
   - if [[ $DEPS == 'latest' ]]; then travis_retry composer update --no-interaction --prefer-source ; fi
   - if [[ $DEPS == 'lowest' ]]; then travis_retry composer update --no-interaction --prefer-source --prefer-lowest ; fi
 
-before_script:
-    - travis_retry composer install --no-interaction
-
 script:
-    - vendor/bin/phpunit
-    - vendor/bin/phpcs --standard=PSR2 src tests
+    - ./vendor/bin/phpunit
+    - ./vendor/bin/phpcs --standard=PSR2 src tests
