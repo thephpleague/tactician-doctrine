@@ -16,7 +16,7 @@ Via Composer
 $ composer require league/tactician-doctrine
 ```
 
-Next, add the `ORM\TransactionMiddle` to your CommandBus:
+Next, add the `ORM\TransactionMiddleware` to your CommandBus:
 
 ``` php
 $commandBus = new \League\Tactician\CommandBus(
