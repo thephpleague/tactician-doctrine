@@ -16,7 +16,7 @@ Via Composer
 $ composer require league/tactician-doctrine
 ```
 
-Next, add the `ORM\TransactionMiddle` to your CommandBus:
+Next, add the `ORM\TransactionMiddleware` to your CommandBus:
 
 ``` php
 $commandBus = new \League\Tactician\CommandBus(
@@ -32,7 +32,7 @@ If a command fires off more commands, be aware that those commands will run in t
 
 If an exception is raised while handling the command, the transaction is rolled back, the EntityManager closed, and the exception rethrown.
 
-## Symfony2 integration
+## Symfony integration
 When using the [tactician-bundle] (https://github.com/thephpleague/tactician-bundle), don't forget to add the Doctrine middleware to your Symfony config:
 
 ```
