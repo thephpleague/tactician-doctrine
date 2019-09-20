@@ -7,10 +7,9 @@ use League\Tactician\Doctrine\DBAL\PingConnectionMiddleware;
 use League\Tactician\Doctrine\DBAL\TransactionMiddleware;
 use Mockery;
 use Mockery\MockInterface;
-use PHPUnit\Framework\TestCase;
 use stdClass;
 
-final class PingConnectionMiddlewareTest extends TestCase
+final class PingConnectionMiddlewareTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var Connection|MockInterface
