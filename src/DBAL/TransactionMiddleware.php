@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\Tactician\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver\Connection;
-use League\Tactician\Middleware;
 use Exception;
+use League\Tactician\Middleware;
 use Throwable;
 
 /**
@@ -12,14 +14,9 @@ use Throwable;
  */
 class TransactionMiddleware implements Middleware
 {
-    /**
-     * @var Connection
-     */
+    /** @var Connection */
     protected $connection;
 
-    /**
-     * @param Connection $connection
-     */
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
@@ -28,13 +25,12 @@ class TransactionMiddleware implements Middleware
     /**
      * Executes the given command and optionally returns a value
      *
-     * @param object $command
-     * @param callable $next
      * @return mixed
+     *
      * @throws Exception
      * @throws Throwable
      */
-    public function execute($command, callable $next)
+    public function execute(object $command, callable $next)
     {
         $this->connection->beginTransaction();
 

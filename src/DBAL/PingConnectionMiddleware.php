@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\Tactician\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
@@ -10,9 +12,7 @@ use League\Tactician\Middleware;
  */
 final class PingConnectionMiddleware implements Middleware
 {
-    /**
-     * @var Connection
-     */
+    /** @var Connection */
     private $connection;
 
     public function __construct(Connection $connection)
@@ -23,17 +23,15 @@ final class PingConnectionMiddleware implements Middleware
     /**
      * Reconnects to the database if the connection is expired.
      *
-     * @param object $command
-     * @param callable $next
      * @return mixed
      */
-    public function execute($command, callable $next)
+    public function execute(object $command, callable $next)
     {
-        if (!$this->connection->ping()) {
+        if (! $this->connection->ping()) {
             $this->connection->close();
             $this->connection->connect();
         }
-        
+
         return $next($command);
     }
 }

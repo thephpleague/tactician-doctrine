@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\Tactician\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,14 +11,9 @@ use Throwable;
 
 class RollbackOnlyTransactionMiddleware implements Middleware
 {
-    /**
-     * @var EntityManagerInterface
-     */
+    /** @var EntityManagerInterface */
     private $entityManager;
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     */
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
@@ -25,13 +22,12 @@ class RollbackOnlyTransactionMiddleware implements Middleware
     /**
      * Executes the given command and optionally returns a value
      *
-     * @param object $command
-     * @param callable $next
      * @return mixed
-     * @throws \Throwable
-     * @throws \Exception
+     *
+     * @throws Throwable
+     * @throws Exception
      */
-    public function execute($command, callable $next)
+    public function execute(object $command, callable $next)
     {
         $this->entityManager->beginTransaction();
 

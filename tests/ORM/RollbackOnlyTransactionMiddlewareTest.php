@@ -1,91 +1,81 @@
 <?php
-namespace League\Tactician\Doctrine\ORM\Tests;
+
+declare(strict_types=1);
+
+namespace League\Tactician\Doctrine\Tests\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
-use League\Tactician\Doctrine\ORM\RollbackOnlyTransactionMiddleware;
-use League\Tactician\Doctrine\ORM\TransactionMiddleware;
 use Error;
 use Exception;
-use Mockery;
-use Mockery\MockInterface;
+use League\Tactician\Doctrine\ORM\RollbackOnlyTransactionMiddleware;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use stdClass;
 
-class RollbackOnlyTransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
+class RollbackOnlyTransactionMiddlewareTest extends TestCase
 {
-    /**
-     * @var EntityManagerInterface|MockInterface
-     */
+    /** @var EntityManagerInterface&MockObject */
     private $entityManager;
 
-    /**
-     * @var RollbackOnlyTransactionMiddleware
-     */
+    /** @var RollbackOnlyTransactionMiddleware */
     private $middleware;
 
-    protected function setUp()
+    protected function setUp() : void
     {
-        $this->entityManager = Mockery::mock(EntityManagerInterface::class);
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
         $this->middleware = new RollbackOnlyTransactionMiddleware($this->entityManager);
     }
 
-    public function testCommandSucceedsAndTransactionIsCommitted()
+    public function testCommandSucceedsAndTransactionIsCommitted() : void
     {
-        $this->entityManager->shouldReceive('beginTransaction')->once();
-        $this->entityManager->shouldReceive('commit')->once();
-        $this->entityManager->shouldReceive('flush')->once();
-        $this->entityManager->shouldNotReceive('rollback');
-        $this->entityManager->shouldNotReceive('close');
+        $this->entityManager->expects(self::once())->method('beginTransaction');
+        $this->entityManager->expects(self::once())->method('commit');
+        $this->entityManager->expects(self::once())->method('flush');
+        $this->entityManager->expects(self::never())->method('rollback');
+        $this->entityManager->expects(self::never())->method('close');
 
         $executed = 0;
-        $next = function () use (&$executed) {
+        $next     = static function () use (&$executed) : void {
             $executed++;
         };
 
         $this->middleware->execute(new stdClass(), $next);
 
-        $this->assertEquals(1, $executed);
+        self::assertEquals(1, $executed);
     }
 
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage CommandFails
-     */
-    public function testCommandFailsOnExceptionAndTransactionIsRolledBack()
+    public function testCommandFailsOnExceptionAndTransactionIsRolledBack() : void
     {
-        $this->entityManager->shouldReceive('beginTransaction')->once();
-        $this->entityManager->shouldReceive('commit')->never();
-        $this->entityManager->shouldReceive('flush')->never();
-        $this->entityManager->shouldReceive('rollback')->once();
-        $this->entityManager->shouldNotReceive('getConnection');
-        $this->entityManager->shouldNotReceive('close');
+        $this->entityManager->expects(self::once())->method('beginTransaction');
+        $this->entityManager->expects(self::never())->method('commit');
+        $this->entityManager->expects(self::never())->method('flush');
+        $this->entityManager->expects(self::once())->method('rollback');
+        $this->entityManager->expects(self::never())->method('getConnection');
+        $this->entityManager->expects(self::never())->method('close');
 
-        $next = function () {
+        $next = static function () : void {
             throw new Exception('CommandFails');
         };
 
+        $this->expectExceptionObject(new Exception('CommandFails'));
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    /**
-     * @requires PHP 7
-     *
-     * @expectedException Error
-     * @expectedExceptionMessage CommandFails
-     */
-    public function testCommandFailsOnErrorAndTransactionIsRolledBack()
+    public function testCommandFailsOnErrorAndTransactionIsRolledBack() : void
     {
-        $this->entityManager->shouldReceive('beginTransaction')->once();
-        $this->entityManager->shouldReceive('commit')->never();
-        $this->entityManager->shouldReceive('flush')->never();
-        $this->entityManager->shouldReceive('rollback')->once();
-        $this->entityManager->shouldNotReceive('getConnection');
-        $this->entityManager->shouldNotReceive('close');
+        $this->entityManager->expects(self::once())->method('beginTransaction');
+        $this->entityManager->expects(self::never())->method('commit');
+        $this->entityManager->expects(self::never())->method('flush');
+        $this->entityManager->expects(self::once())->method('rollback');
+        $this->entityManager->expects(self::never())->method('getConnection');
+        $this->entityManager->expects(self::never())->method('close');
 
-        $next = function () {
+        $next = static function () : void {
             throw new Error('CommandFails');
         };
 
+        $this->expectErrorMessage('CommandFails');
         $this->middleware->execute(new stdClass(), $next);
     }
 }

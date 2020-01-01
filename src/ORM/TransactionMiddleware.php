@@ -1,9 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 namespace League\Tactician\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
-use League\Tactician\Middleware;
 use Exception;
+use League\Tactician\Middleware;
 use Throwable;
 
 /**
@@ -11,14 +14,9 @@ use Throwable;
  */
 class TransactionMiddleware implements Middleware
 {
-    /**
-     * @var EntityManagerInterface
-     */
+    /** @var EntityManagerInterface */
     private $entityManager;
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     */
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
@@ -27,13 +25,12 @@ class TransactionMiddleware implements Middleware
     /**
      * Executes the given command and optionally returns a value
      *
-     * @param object $command
-     * @param callable $next
      * @return mixed
+     *
      * @throws Throwable
      * @throws Exception
      */
-    public function execute($command, callable $next)
+    public function execute(object $command, callable $next)
     {
         $this->entityManager->beginTransaction();
 
@@ -58,13 +55,15 @@ class TransactionMiddleware implements Middleware
     /**
      * Rollback the current transaction and close the entity manager when possible.
      */
-    protected function rollbackTransaction()
+    protected function rollbackTransaction() : void
     {
         $this->entityManager->rollback();
 
         $connection = $this->entityManager->getConnection();
-        if (!$connection->isTransactionActive() || $connection->isRollbackOnly()) {
-            $this->entityManager->close();
+        if ($connection->isTransactionActive() && ! $connection->isRollbackOnly()) {
+            return;
         }
+
+        $this->entityManager->close();
     }
 }

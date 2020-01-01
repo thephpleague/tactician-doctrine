@@ -1,29 +1,26 @@
 <?php
 
-namespace League\Tactician\Doctrine\DBAL\Tests;
+declare(strict_types=1);
+
+namespace League\Tactician\Doctrine\Tests\DBAL;
 
 use Doctrine\DBAL\Connection;
 use League\Tactician\Doctrine\DBAL\PingConnectionMiddleware;
-use League\Tactician\Doctrine\DBAL\TransactionMiddleware;
-use Mockery;
-use Mockery\MockInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use stdClass;
 
-final class PingConnectionMiddlewareTest extends \PHPUnit_Framework_TestCase
+final class PingConnectionMiddlewareTest extends TestCase
 {
-    /**
-     * @var Connection|MockInterface
-     */
+    /** @var Connection&MockObject */
     private $connection;
 
-    /**
-     * @var TransactionMiddleware
-     */
+    /** @var PingConnectionMiddleware */
     private $middleware;
 
-    protected function setUp()
+    protected function setUp() : void
     {
-        $this->connection = Mockery::mock(Connection::class);
+        $this->connection = $this->createMock(Connection::class);
 
         $this->middleware = new PingConnectionMiddleware($this->connection);
     }
@@ -31,38 +28,38 @@ final class PingConnectionMiddlewareTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function itShouldReconnectIfConnectionExpires()
+    public function itShouldReconnectIfConnectionExpires() : void
     {
-        $this->connection->shouldReceive('ping')->once()->andReturn(false);
-        $this->connection->shouldReceive('close')->once();
-        $this->connection->shouldReceive('connect')->once();
+        $this->connection->expects(self::once())->method('ping')->willReturn(false);
+        $this->connection->expects(self::once())->method('close');
+        $this->connection->expects(self::once())->method('connect');
 
         $executed = 0;
-        $next = function () use (&$executed) {
+        $next     = static function () use (&$executed) : void {
             $executed++;
         };
 
         $this->middleware->execute(new stdClass(), $next);
-        
-        $this->assertEquals(1, $executed);
+
+        self::assertEquals(1, $executed);
     }
 
     /**
      * @test
      */
-    public function itShouldNotReconnectIfConnectionIsStillAlive()
+    public function itShouldNotReconnectIfConnectionIsStillAlive() : void
     {
-        $this->connection->shouldReceive('ping')->once()->andReturn(true);
-        $this->connection->shouldReceive('close')->never();
-        $this->connection->shouldReceive('connect')->never();
+        $this->connection->expects(self::once())->method('ping')->willReturn(true);
+        $this->connection->expects(self::never())->method('close');
+        $this->connection->expects(self::never())->method('connect');
 
         $executed = 0;
-        $next = function () use (&$executed) {
+        $next     = static function () use (&$executed) : void {
             $executed++;
         };
 
         $this->middleware->execute(new stdClass(), $next);
 
-        $this->assertEquals(1, $executed);
+        self::assertEquals(1, $executed);
     }
 }
