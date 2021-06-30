@@ -38,11 +38,7 @@ class TransactionMiddleware implements Middleware
             $returnValue = $next($command);
 
             $this->connection->commit();
-        } catch (Exception $exception) {
-            $this->connection->rollBack();
-
-            throw $exception;
-        } catch (Throwable $exception) {
+        } catch (Exception | Throwable $exception) {
             $this->connection->rollBack();
 
             throw $exception;
