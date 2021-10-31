@@ -11,8 +11,7 @@ use Throwable;
 
 class RollbackOnlyTransactionMiddleware implements Middleware
 {
-    /** @var EntityManagerInterface */
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
     {

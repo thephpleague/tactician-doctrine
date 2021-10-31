@@ -14,8 +14,7 @@ use Throwable;
  */
 class TransactionMiddleware implements Middleware
 {
-    /** @var EntityManagerInterface */
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
     {
@@ -55,7 +54,7 @@ class TransactionMiddleware implements Middleware
     /**
      * Rollback the current transaction and close the entity manager when possible.
      */
-    protected function rollbackTransaction() : void
+    protected function rollbackTransaction(): void
     {
         $this->entityManager->rollback();
 

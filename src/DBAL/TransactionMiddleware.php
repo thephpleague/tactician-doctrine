@@ -14,8 +14,7 @@ use Throwable;
  */
 class TransactionMiddleware implements Middleware
 {
-    /** @var Connection */
-    protected $connection;
+    protected Connection $connection;
 
     public function __construct(Connection $connection)
     {

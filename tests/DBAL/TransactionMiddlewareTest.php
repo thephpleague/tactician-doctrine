@@ -17,24 +17,23 @@ final class TransactionMiddlewareTest extends TestCase
     /** @var Connection&MockObject */
     private $connection;
 
-    /** @var TransactionMiddleware */
-    private $middleware;
+    private TransactionMiddleware $middleware;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->connection = $this->createMock(Connection::class);
 
         $this->middleware = new TransactionMiddleware($this->connection);
     }
 
-    public function testCommandSucceedsAndTransactionIsCommitted() : void
+    public function testCommandSucceedsAndTransactionIsCommitted(): void
     {
         $this->connection->expects(self::once())->method('beginTransaction');
         $this->connection->expects(self::once())->method('commit');
         $this->connection->expects(self::never())->method('rollBack');
 
         $executed = 0;
-        $next     = static function () use (&$executed) : void {
+        $next     = static function () use (&$executed): void {
             $executed++;
         };
 
@@ -43,13 +42,13 @@ final class TransactionMiddlewareTest extends TestCase
         self::assertEquals(1, $executed);
     }
 
-    public function testCommandFailsOnExceptionAndTransactionIsRolledBack() : void
+    public function testCommandFailsOnExceptionAndTransactionIsRolledBack(): void
     {
         $this->connection->expects(self::once())->method('beginTransaction');
         $this->connection->expects(self::never())->method('commit');
         $this->connection->expects(self::once())->method('rollBack');
 
-        $next = static function () : void {
+        $next = static function (): void {
             throw new Exception('CommandFails');
         };
 
@@ -58,13 +57,13 @@ final class TransactionMiddlewareTest extends TestCase
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    public function testCommandFailsOnErrorAndTransactionIsRolledBack() : void
+    public function testCommandFailsOnErrorAndTransactionIsRolledBack(): void
     {
         $this->connection->expects(self::once())->method('beginTransaction');
         $this->connection->expects(self::never())->method('commit');
         $this->connection->expects(self::once())->method('rollBack');
 
-        $next = static function () : void {
+        $next = static function (): void {
             throw new Error('CommandFails');
         };
 

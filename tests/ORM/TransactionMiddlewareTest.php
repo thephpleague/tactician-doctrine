@@ -21,10 +21,9 @@ class TransactionMiddlewareTest extends TestCase
     /** @var Connection&MockObject */
     private $connection;
 
-    /** @var TransactionMiddleware */
-    private $middleware;
+    private TransactionMiddleware $middleware;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
@@ -34,7 +33,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->middleware = new TransactionMiddleware($this->entityManager);
     }
 
-    public function testCommandSucceedsAndTransactionIsCommitted() : void
+    public function testCommandSucceedsAndTransactionIsCommitted(): void
     {
         $this->entityManager->expects(self::once())->method('beginTransaction');
         $this->entityManager->expects(self::once())->method('commit');
@@ -43,7 +42,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->entityManager->expects(self::never())->method('close');
 
         $executed = 0;
-        $next     = static function () use (&$executed) : void {
+        $next     = static function () use (&$executed): void {
             $executed++;
         };
 
@@ -52,7 +51,7 @@ class TransactionMiddlewareTest extends TestCase
         self::assertEquals(1, $executed);
     }
 
-    public function testCommandFailsOnExceptionAndTransactionIsRolledBack() : void
+    public function testCommandFailsOnExceptionAndTransactionIsRolledBack(): void
     {
         $this->entityManager->expects(self::once())->method('beginTransaction');
         $this->entityManager->expects(self::never())->method('commit');
@@ -62,7 +61,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->connection->expects(self::never())->method('isRollbackOnly');
         $this->entityManager->expects(self::once())->method('close');
 
-        $next = static function () : void {
+        $next = static function (): void {
             throw new Exception('CommandFails');
         };
 
@@ -70,7 +69,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    public function testCommandFailsWhileInANestedTransactionButWithoutSavepoints() : void
+    public function testCommandFailsWhileInANestedTransactionButWithoutSavepoints(): void
     {
         $this->entityManager->expects(self::once())->method('beginTransaction');
         $this->entityManager->expects(self::never())->method('commit');
@@ -80,7 +79,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->connection->expects(self::once())->method('isRollbackOnly')->willReturn(true);
         $this->entityManager->expects(self::once())->method('close');
 
-        $next = static function () : void {
+        $next = static function (): void {
             throw new Exception('CommandFails');
         };
 
@@ -88,7 +87,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    public function testCommandFailsWhileInANestedTransactionWithSavepointOn() : void
+    public function testCommandFailsWhileInANestedTransactionWithSavepointOn(): void
     {
         $this->entityManager->expects(self::once())->method('beginTransaction');
         $this->entityManager->expects(self::never())->method('commit');
@@ -98,7 +97,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->connection->expects(self::once())->method('isRollbackOnly')->willReturn(false);
         $this->entityManager->expects(self::never())->method('close');
 
-        $next = static function () : void {
+        $next = static function (): void {
             throw new Exception('CommandFails');
         };
 
@@ -106,7 +105,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    public function testCommandFailsOnErrorAndTransactionIsRolledBack() : void
+    public function testCommandFailsOnErrorAndTransactionIsRolledBack(): void
     {
         $this->entityManager->expects(self::once())->method('beginTransaction');
         $this->entityManager->expects(self::never())->method('commit');
@@ -116,7 +115,7 @@ class TransactionMiddlewareTest extends TestCase
         $this->connection->expects(self::never())->method('isRollbackOnly');
         $this->entityManager->expects(self::once())->method('close');
 
-        $next = static function () : void {
+        $next = static function (): void {
             throw new Error('CommandFails');
         };
 
