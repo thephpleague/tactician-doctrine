@@ -41,10 +41,6 @@ final class PingConnectionMiddleware implements Middleware
 
     private function ping(Connection $connection): bool
     {
-        set_error_handler(static function (int $severity, string $message, string $file, int $line): bool {
-            throw new ErrorException($message, $severity, $severity, $file, $line);
-        });
-
         try {
             $dummySelectSQL = $connection->getDatabasePlatform()->getDummySelectSQL();
 
@@ -53,8 +49,6 @@ final class PingConnectionMiddleware implements Middleware
             return true;
         } catch (Throwable $exception) {
             return false;
-        } finally {
-            restore_error_handler();
         }
     }
 }
