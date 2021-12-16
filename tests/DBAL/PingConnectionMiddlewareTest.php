@@ -5,10 +5,16 @@ declare(strict_types=1);
 namespace League\Tactician\Doctrine\Tests\DBAL;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Exception;
 use League\Tactician\Doctrine\DBAL\PingConnectionMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+
+use function trigger_error;
+
+use const E_USER_ERROR;
 
 final class PingConnectionMiddlewareTest extends TestCase
 {
@@ -29,7 +35,31 @@ final class PingConnectionMiddlewareTest extends TestCase
      */
     public function itShouldReconnectIfConnectionExpires(): void
     {
-        $this->connection->expects(self::once())->method('ping')->willReturn(false);
+        $this->connection->expects(self::once())->method('getDatabasePlatform')->willThrowException(new Exception());
+        $this->connection->expects(self::once())->method('close');
+        $this->connection->expects(self::once())->method('connect');
+
+        $executed = 0;
+        $next     = static function () use (&$executed): void {
+            $executed++;
+        };
+
+        $this->middleware->execute(new stdClass(), $next);
+
+        self::assertEquals(1, $executed);
+    }
+
+    /**
+     * @test
+     */
+    public function itShouldReconnectIfConnectionRaiseError(): void
+    {
+        $this->connection->expects(self::once())->method('getDatabasePlatform')->willReturnCallback(static function (): void {
+            trigger_error(
+                'Now really is not a good time',
+                E_USER_ERROR
+            );
+        });
         $this->connection->expects(self::once())->method('close');
         $this->connection->expects(self::once())->method('connect');
 
@@ -48,7 +78,12 @@ final class PingConnectionMiddlewareTest extends TestCase
      */
     public function itShouldNotReconnectIfConnectionIsStillAlive(): void
     {
-        $this->connection->expects(self::once())->method('ping')->willReturn(true);
+        $abstractPlatform = $this->createMock(AbstractPlatform::class);
+        $abstractPlatform->method('getDummySelectSQL')->willReturn('');
+
+        $this->connection->expects(self::once())->method('getDatabasePlatform')->willReturn($abstractPlatform);
+
+        $this->connection->expects(self::once())->method('executeQuery');
         $this->connection->expects(self::never())->method('close');
         $this->connection->expects(self::never())->method('connect');
 
