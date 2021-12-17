@@ -35,11 +35,7 @@ class RollbackOnlyTransactionMiddleware implements Middleware
 
             $this->entityManager->flush();
             $this->entityManager->commit();
-        } catch (Exception $e) {
-            $this->entityManager->rollback();
-
-            throw $e;
-        } catch (Throwable $e) {
+        } catch (Exception | Throwable $e) {
             $this->entityManager->rollback();
 
             throw $e;
