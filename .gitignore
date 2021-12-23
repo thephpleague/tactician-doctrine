@@ -3,4 +3,4 @@ build/
 composer.lock
 .idea
 .phpcs-cache
-.phpunit.result.cache\
+.phpunit.result.cache

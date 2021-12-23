@@ -9,9 +9,12 @@ use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
 
 class TransactionMiddlewareTest extends TestCase
 {
+    use ExpectPHPException;
+
     /**
      * @var EntityManagerInterface|MockInterface
      */
