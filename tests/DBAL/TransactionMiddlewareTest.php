@@ -77,7 +77,7 @@ final class TransactionMiddlewareTest extends TestCase
         $this->connection->expects('rollBack');
 
 
-        $this->expectError();
+        $this->expectException(Error::class);
         $this->expectErrorMessage('CommandFails');
 
         $next = function () {

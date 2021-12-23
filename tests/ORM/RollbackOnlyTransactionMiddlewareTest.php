@@ -88,7 +88,7 @@ class RollbackOnlyTransactionMiddlewareTest extends TestCase
             throw new Error('CommandFails');
         };
 
-        $this->expectError();
+        $this->expectException(Error::class);
         $this->expectErrorMessage('CommandFails');
 
         $this->middleware->execute(new stdClass(), $next);

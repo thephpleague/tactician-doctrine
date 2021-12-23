@@ -125,12 +125,12 @@ class TransactionMiddlewareTest extends TestCase
         $this->entityManager->allows('getConnection->isRollbackOnly')->never();
         $this->entityManager->expects('close');
 
-        $this->expectError();
-        $this->expectErrorMessage('CommandFails');
-
         $next = function () {
             throw new Error('CommandFails');
         };
+
+        $this->expectException(Error::class);
+        $this->expectErrorMessage('CommandFails');
 
         $this->middleware->execute(new stdClass(), $next);
     }
