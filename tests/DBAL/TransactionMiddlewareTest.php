@@ -8,10 +8,14 @@ use Exception;
 use League\Tactician\Doctrine\DBAL\TransactionMiddleware;
 use Mockery;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
 use stdClass;
+use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
 
-final class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
+final class TransactionMiddlewareTest extends TestCase
 {
+    use ExpectPHPException;
+
     /**
      * @var Connection|MockInterface
      */
@@ -22,18 +26,23 @@ final class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
      */
     private $middleware;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->connection = Mockery::mock(Connection::class);
 
         $this->middleware = new TransactionMiddleware($this->connection);
     }
 
+    protected function tearDown(): void
+    {
+        Mockery::close();
+    }
+
     public function testCommandSucceedsAndTransactionIsCommitted()
     {
-        $this->connection->shouldReceive('beginTransaction')->once();
-        $this->connection->shouldReceive('commit')->once();
-        $this->connection->shouldReceive('rollBack')->never();
+        $this->connection->expects('beginTransaction');
+        $this->connection->expects('commit');
+        $this->connection->allows('rollBack')->never();
 
         $executed = 0;
         $next = function () use (&$executed) {
@@ -47,29 +56,29 @@ final class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testCommandFailsOnExceptionAndTransactionIsRolledBack()
     {
-        $this->connection->shouldReceive('beginTransaction')->once();
-        $this->connection->shouldReceive('commit')->never();
-        $this->connection->shouldReceive('rollBack')->once();
+        $this->connection->expects('beginTransaction');
+        $this->connection->allows('commit')->never();
+        $this->connection->expects('rollBack');
 
         $next = function () {
             throw new Exception('CommandFails');
         };
 
-        $this->setExpectedException(Exception::class, 'CommandFails');
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('CommandFails');
 
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    /**
-     * @requires PHP 7
-     */
     public function testCommandFailsOnErrorAndTransactionIsRolledBack()
     {
-        $this->connection->shouldReceive('beginTransaction')->once();
-        $this->connection->shouldReceive('commit')->never();
-        $this->connection->shouldReceive('rollBack')->once();
+        $this->connection->expects('beginTransaction');
+        $this->connection->allows('commit')->never();
+        $this->connection->expects('rollBack');
 
-        $this->setExpectedException(Error::class, 'CommandFails');
+
+        $this->expectException(Error::class);
+        $this->expectErrorMessage('CommandFails');
 
         $next = function () {
             throw new Error('CommandFails');

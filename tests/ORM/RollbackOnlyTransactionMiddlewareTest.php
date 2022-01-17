@@ -8,10 +8,14 @@ use Error;
 use Exception;
 use Mockery;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
 use stdClass;
+use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
 
-class RollbackOnlyTransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
+class RollbackOnlyTransactionMiddlewareTest extends TestCase
 {
+    use ExpectPHPException;
+
     /**
      * @var EntityManagerInterface|MockInterface
      */
@@ -22,11 +26,16 @@ class RollbackOnlyTransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
      */
     private $middleware;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->entityManager = Mockery::mock(EntityManagerInterface::class);
 
         $this->middleware = new RollbackOnlyTransactionMiddleware($this->entityManager);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
     }
 
     public function testCommandSucceedsAndTransactionIsCommitted()
@@ -47,10 +56,6 @@ class RollbackOnlyTransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $executed);
     }
 
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage CommandFails
-     */
     public function testCommandFailsOnExceptionAndTransactionIsRolledBack()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
@@ -64,15 +69,12 @@ class RollbackOnlyTransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
             throw new Exception('CommandFails');
         };
 
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('CommandFails');
+
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    /**
-     * @requires PHP 7
-     *
-     * @expectedException Error
-     * @expectedExceptionMessage CommandFails
-     */
     public function testCommandFailsOnErrorAndTransactionIsRolledBack()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
@@ -85,6 +87,9 @@ class RollbackOnlyTransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
         $next = function () {
             throw new Error('CommandFails');
         };
+
+        $this->expectException(Error::class);
+        $this->expectErrorMessage('CommandFails');
 
         $this->middleware->execute(new stdClass(), $next);
     }

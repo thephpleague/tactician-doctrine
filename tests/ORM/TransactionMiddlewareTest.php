@@ -7,10 +7,14 @@ use Error;
 use Exception;
 use Mockery;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
 use stdClass;
+use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
 
-class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
+class TransactionMiddlewareTest extends TestCase
 {
+    use ExpectPHPException;
+
     /**
      * @var EntityManagerInterface|MockInterface
      */
@@ -21,11 +25,16 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
      */
     private $middleware;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->entityManager = Mockery::mock(EntityManagerInterface::class);
 
         $this->middleware = new TransactionMiddleware($this->entityManager);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
     }
 
     public function testCommandSucceedsAndTransactionIsCommitted()
@@ -46,10 +55,6 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $executed);
     }
 
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage CommandFails
-     */
     public function testCommandFailsOnExceptionAndTransactionIsRolledBack()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
@@ -64,13 +69,12 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
             throw new Exception('CommandFails');
         };
 
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('CommandFails');
+
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage CommandFails
-     */
     public function testCommandFailsWhileInANestedTransactionButWithoutSavepoints()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
@@ -85,13 +89,12 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
             throw new Exception('CommandFails');
         };
 
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('CommandFails');
+
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage CommandFails
-     */
     public function testCommandFailsWhileInANestedTransactionWithSavepointOn()
     {
         $this->entityManager->shouldReceive('beginTransaction')->once();
@@ -106,28 +109,28 @@ class TransactionMiddlewareTest extends \PHPUnit_Framework_TestCase
             throw new Exception('CommandFails');
         };
 
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('CommandFails');
+
         $this->middleware->execute(new stdClass(), $next);
     }
 
-    /**
-     * @requires PHP 7
-     *
-     * @expectedException Error
-     * @expectedExceptionMessage CommandFails
-     */
     public function testCommandFailsOnErrorAndTransactionIsRolledBack()
     {
-        $this->entityManager->shouldReceive('beginTransaction')->once();
-        $this->entityManager->shouldReceive('commit')->never();
-        $this->entityManager->shouldReceive('flush')->never();
-        $this->entityManager->shouldReceive('rollback')->once();
-        $this->entityManager->shouldReceive('getConnection->isTransactionActive')->once()->andReturn(false);
-        $this->entityManager->shouldReceive('getConnection->isRollbackOnly')->never();
-        $this->entityManager->shouldReceive('close')->once();
+        $this->entityManager->expects('beginTransaction');
+        $this->entityManager->allows('commit')->never();
+        $this->entityManager->allows('flush')->never();
+        $this->entityManager->expects('rollback');
+        $this->entityManager->expects('getConnection->isTransactionActive')->andReturns(false);
+        $this->entityManager->allows('getConnection->isRollbackOnly')->never();
+        $this->entityManager->expects('close');
 
         $next = function () {
             throw new Error('CommandFails');
         };
+
+        $this->expectException(Error::class);
+        $this->expectErrorMessage('CommandFails');
 
         $this->middleware->execute(new stdClass(), $next);
     }
